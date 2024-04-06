@@ -1,6 +1,7 @@
 import os
 import torch
 import pytorch3d
+import numpy as np
 from pytorch3d.renderer import (
     AlphaCompositor,
     PointsRasterizationSettings,
@@ -65,7 +66,7 @@ def viz_seg (verts, labels, path, device):
     elev = 0
     azim = [180 - 12*i for i in range(30)]
     R, T = pytorch3d.renderer.cameras.look_at_view_transform(dist=dist, elev=elev, azim=azim, device=device)
-    c = pytorch3d.renderer.FoVPerspectiveCameras(R=R, T=T, fov=60, device=device)
+    cameras = pytorch3d.renderer.FoVPerspectiveCameras(R=R, T=T, fov=60, device=device)
 
     sample_verts = verts.unsqueeze(0).repeat(30,1,1).to(torch.float)
     sample_labels = labels.unsqueeze(0)
@@ -80,7 +81,30 @@ def viz_seg (verts, labels, path, device):
     point_cloud = pytorch3d.structures.Pointclouds(points=sample_verts, features=sample_colors).to(device)
 
     renderer = get_points_renderer(image_size=image_size, background_color=background_color, device=device)
-    rend = renderer(point_cloud, cameras=c).cpu().numpy() # (30, 256, 256, 3)
+    rend = renderer(point_cloud, cameras=cameras).cpu().numpy() # (30, 256, 256, 3)
     rend = (rend * 255).astype(np.uint8)
 
-    imageio.mimsave(path, rend, fps=15)
+    imageio.mimwrite(path, rend, fps=15, loop=0)
+
+def viz_pc(points, path, device):
+    """
+    visualize point cloud
+    output: a 360-degree gif
+    """
+    image_size=256
+    background_color=(0.5, 0.5, 0.5)
+
+    # Construct various camera viewpoints
+    dist = 3
+    elev = 0
+    azim = [180 - 12*i for i in range(30)]
+    R, T = pytorch3d.renderer.cameras.look_at_view_transform(dist=dist, elev=elev, azim=azim, device=device)
+    cameras = pytorch3d.renderer.FoVPerspectiveCameras(R=R, T=T, fov=60, device=device)
+    
+    points = points.unsqueeze(0).repeat(30,1,1)
+    point_cloud = pytorch3d.structures.Pointclouds(points=points, features=torch.ones_like(points)).to(device)
+    renderer = get_points_renderer(image_size=image_size, background_color=background_color, device=device)
+    rend = renderer(point_cloud, cameras=cameras).cpu().numpy() # (30, 256, 256, 3)
+    rend = (rend * 255).astype(np.uint8)
+
+    imageio.mimwrite(path, rend, fps=15, loop=0)

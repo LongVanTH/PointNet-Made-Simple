@@ -18,8 +18,7 @@ def train(train_dataloader, model, opt, epoch, args, writer):
         point_clouds = point_clouds.to(args.device)
         labels = labels.to(args.device).to(torch.long)
 
-        # ------ TO DO: Forward Pass ------
-        predictions = 
+        predictions = model(point_clouds)
 
         if (args.task == "seg"):
             labels = labels.reshape([-1])
@@ -52,9 +51,10 @@ def test(test_dataloader, model, epoch, args, writer):
             point_clouds = point_clouds.to(args.device)
             labels = labels.to(args.device).to(torch.long)
 
-            # ------ TO DO: Make Predictions ------
             with torch.no_grad():
-                pred_labels = 
+                predictions = model(point_clouds)
+                pred_labels = torch.argmax(predictions, dim=1)
+
             correct_obj += pred_labels.eq(labels.data).cpu().sum().item()
             num_obj += labels.size()[0]
 
@@ -95,9 +95,8 @@ def main(args):
     # Tensorboard Logger
     writer = SummaryWriter('./logs/{0}'.format(args.task+"_"+args.exp_name))
 
-    # ------ TO DO: Initialize Model ------
     if args.task == "cls":
-        model = 
+        model = cls_model().to(args.device)
     else:
         model = 
     
