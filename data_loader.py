@@ -7,6 +7,7 @@ class CustomDataSet(Dataset):
     def __init__(self, args, train=True):
         self.main_dir = args.main_dir 
         self.task = args.task 
+        self.augmentation = args.augmentation
 
         if train:
             data_path = self.main_dir + self.task + "/data_train.npy"
@@ -22,7 +23,17 @@ class CustomDataSet(Dataset):
         return self.data.size()[0]
 
     def __getitem__(self, idx):
-        return self.data[idx], self.label[idx]
+        point_set = self.data[idx]
+        if self.augmentation:
+            theta = torch.tensor(np.random.uniform(0, np.pi*2))
+            rotation_matrix = torch.tensor(
+                [[torch.cos(theta), -torch.sin(theta)],
+                [torch.sin(theta), torch.cos(theta)]]
+            )
+            point_set[:, [0, 2]] = torch.mm(point_set[:, [0, 2]], rotation_matrix)
+            point_set += torch.randn_like(point_set) * 0.02 # random jitter
+
+        return point_set, self.label[idx]
 
 def get_data_loader(args, train=True):
     """

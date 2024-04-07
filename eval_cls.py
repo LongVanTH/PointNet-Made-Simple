@@ -21,6 +21,7 @@ def create_parser():
     parser.add_argument('--output_dir', type=str, default='./output/cls')
 
     parser.add_argument('--exp_name', type=str, default="exp", help='The name of the experiment')
+    parser.add_argument('--rotation', type=int, default=0, help='Rotation angle in degrees (around vertical axis)')
 
     return parser
 
@@ -52,6 +53,8 @@ if __name__ == '__main__':
         pred_label = torch.tensor([]).to(args.device)
         for i in range(0, test_data.size()[0], batch_size):
             test_data_batch = test_data[i:i+batch_size].to(args.device)
+            if args.rotation:
+                test_data_batch = test_data_batch @ torch.tensor(np.array([[np.cos(args.rotation), 0, np.sin(args.rotation)], [0, 1, 0], [-np.sin(args.rotation), 0, np.cos(args.rotation)]], dtype=np.float32)).to(args.device)
             pred_label_batch = model(test_data_batch)
             pred_label = torch.cat((pred_label, torch.argmax(pred_label_batch, dim=1)), dim=0)
 

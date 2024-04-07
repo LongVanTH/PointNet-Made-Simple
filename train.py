@@ -133,7 +133,7 @@ def main(args):
         print("epoch: {}   train loss: {:.4f}   test accuracy: {:.4f}".format(epoch, train_epoch_loss, current_acc))
         
         # Save Model Checkpoint Regularly
-        if epoch % args.checkpoint_every == 0 and epoch == args.num_epochs-1:
+        if epoch % args.checkpoint_every == 0 or epoch == args.num_epochs-1:
             print("checkpoint saved at epoch {}".format(epoch))
             save_checkpoint(epoch=epoch, model=model, args=args, best=False)
 
@@ -153,6 +153,7 @@ def create_parser():
     # Model & Data hyper-parameters
     parser.add_argument('--task', type=str, default="cls", help='The task: cls or seg')
     parser.add_argument('--num_seg_class', type=int, default=6, help='The number of segmentation classes')
+    parser.add_argument('--augmentation', action='store_true', help='Apply data augmentation')
 
     # Training hyper-parameters
     parser.add_argument('--num_epochs', type=int, default=100)
