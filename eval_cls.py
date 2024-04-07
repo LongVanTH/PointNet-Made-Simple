@@ -18,7 +18,7 @@ def create_parser():
 
     parser.add_argument('--test_data', type=str, default='./data/cls/data_test.npy')
     parser.add_argument('--test_label', type=str, default='./data/cls/label_test.npy')
-    parser.add_argument('--output_dir', type=str, default='./output')
+    parser.add_argument('--output_dir', type=str, default='./output/cls')
 
     parser.add_argument('--exp_name', type=str, default="exp", help='The name of the experiment')
 
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     test_accuracy = pred_label.eq(test_label.data).cpu().sum().item() / (test_label.size()[0])
     print("Test accuracy: {}".format(test_accuracy))
 
-    # Confusion matrix
+    # Confusion Matrix
     num_classes = 3
     confusion_matrix = torch.zeros(num_classes, num_classes)
     for true_class in range(num_classes):

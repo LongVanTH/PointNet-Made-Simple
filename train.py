@@ -70,9 +70,9 @@ def test(test_dataloader, model, epoch, args, writer):
             point_clouds = point_clouds.to(args.device)
             labels = labels.to(args.device).to(torch.long)
 
-            # ------ TO DO: Make Predictions ------
-            with torch.no_grad():     
-                pred_labels = 
+            with torch.no_grad():
+                predictions = model(point_clouds)
+                pred_labels = torch.argmax(predictions, dim=2)
 
             correct_point += pred_labels.eq(labels.data).cpu().sum().item()
             num_point += labels.view([-1,1]).size()[0]
@@ -98,7 +98,7 @@ def main(args):
     if args.task == "cls":
         model = cls_model().to(args.device)
     else:
-        model = 
+        model = seg_model(args.num_seg_class).to(args.device)
     
     # Load Checkpoint 
     if args.load_checkpoint:
@@ -106,7 +106,7 @@ def main(args):
         with open(model_path, 'rb') as f:
             state_dict = torch.load(f, map_location=args.device)
             model.load_state_dict(state_dict)
-        print ("successfully loaded checkpoint from {}".format(model_path))
+        print("successfully loaded checkpoint from {}".format(model_path))
 
     # Optimizer
     opt = optim.Adam(model.parameters(), args.lr, betas=(0.9, 0.999))
@@ -115,12 +115,12 @@ def main(args):
     train_dataloader = get_data_loader(args=args, train=True)
     test_dataloader = get_data_loader(args=args, train=False)
 
-    print ("successfully loaded data")
+    print("successfully loaded data")
 
     best_acc = -1
 
-    print ("======== start training for {} task ========".format(args.task))
-    print ("(check tensorboard for plots of experiment logs/{})".format(args.task+"_"+args.exp_name))
+    print("======== start training for {} task ========".format(args.task))
+    print("(check tensorboard for plots of experiment logs/{})".format(args.task+"_"+args.exp_name))
     
     for epoch in range(args.num_epochs):
 
@@ -130,20 +130,20 @@ def main(args):
         # Test
         current_acc = test(test_dataloader, model, epoch, args, writer)
 
-        print ("epoch: {}   train loss: {:.4f}   test accuracy: {:.4f}".format(epoch, train_epoch_loss, current_acc))
+        print("epoch: {}   train loss: {:.4f}   test accuracy: {:.4f}".format(epoch, train_epoch_loss, current_acc))
         
         # Save Model Checkpoint Regularly
-        if epoch % args.checkpoint_every == 0:
-            print ("checkpoint saved at epoch {}".format(epoch))
+        if epoch % args.checkpoint_every == 0 and epoch == args.num_epochs-1:
+            print("checkpoint saved at epoch {}".format(epoch))
             save_checkpoint(epoch=epoch, model=model, args=args, best=False)
 
         # Save Best Model Checkpoint
         if (current_acc >= best_acc):
             best_acc = current_acc
-            print ("best model saved at epoch {}".format(epoch))
+            print("best model saved at epoch {}".format(epoch))
             save_checkpoint(epoch=epoch, model=model, args=args, best=True)
 
-    print ("======== training completed ========")
+    print("======== training completed ========")
 
 def create_parser():
     """Creates a parser for command-line arguments.
@@ -155,7 +155,7 @@ def create_parser():
     parser.add_argument('--num_seg_class', type=int, default=6, help='The number of segmentation classes')
 
     # Training hyper-parameters
-    parser.add_argument('--num_epochs', type=int, default=250)
+    parser.add_argument('--num_epochs', type=int, default=100)
     parser.add_argument('--batch_size', type=int, default=32, help='The number of images in a batch.')
     parser.add_argument('--num_workers', type=int, default=0, help='The number of threads to use for the DataLoader.')
     parser.add_argument('--lr', type=float, default=0.001, help='The learning rate (default 0.001)')
