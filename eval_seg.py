@@ -68,6 +68,10 @@ if __name__ == '__main__':
     # Visualize Segmentation Result (Pred VS Ground Truth)
     viz_seg(test_data[args.i], test_label[args.i], "{}/gt_{}.gif".format(args.output_dir, args.i), args.device)
     viz_seg(test_data[args.i], pred_label[args.i], "{}/pred_{}_{}.gif".format(args.output_dir, args.i, accuracies[args.i]), args.device)
+    # Visualize misclassified points
+    miss_idx = (test_label[args.i] != pred_label[args.i]).cpu()
+    viz_seg(test_data[args.i][miss_idx], test_label[args.i][miss_idx], "{}/miss_gt_{}.gif".format(args.output_dir, args.i), args.device)
+    viz_seg(test_data[args.i][miss_idx], pred_label[args.i][miss_idx], "{}/miss_pred_{}.gif".format(args.output_dir, args.i), args.device)
 
     # Visualize best and worst cases
     if args.viz_best_worst != 0:
@@ -77,6 +81,13 @@ if __name__ == '__main__':
         for i in range(args.viz_best_worst):
             viz_seg(test_data[best_cases[i]], test_label[best_cases[i]], "{}/best_gt_{}.gif".format(args.output_dir, i), args.device)
             viz_seg(test_data[best_cases[i]], pred_label[best_cases[i]], "{}/best_pred_{}_{}.gif".format(args.output_dir, i, accuracies[best_cases[i]]), args.device)
+            miss_idx = (test_label[best_cases[i]] != pred_label[best_cases[i]]).cpu()
+            viz_seg(test_data[best_cases[i]][miss_idx], test_label[best_cases[i]][miss_idx], "{}/best_miss_gt_{}.gif".format(args.output_dir, i), args.device)
+            viz_seg(test_data[best_cases[i]][miss_idx], pred_label[best_cases[i]][miss_idx], "{}/best_miss_pred_{}.gif".format(args.output_dir, i), args.device)
+
             viz_seg(test_data[worst_cases[i]], test_label[worst_cases[i]], "{}/worst_gt_{}.gif".format(args.output_dir, i), args.device)
             viz_seg(test_data[worst_cases[i]], pred_label[worst_cases[i]], "{}/worst_pred_{}_{}.gif".format(args.output_dir, i, accuracies[worst_cases[i]]), args.device)
+            miss_idx = (test_label[worst_cases[i]] != pred_label[worst_cases[i]]).cpu()
+            viz_seg(test_data[worst_cases[i]][miss_idx], test_label[worst_cases[i]][miss_idx], "{}/worst_miss_gt_{}.gif".format(args.output_dir, i), args.device)
+            viz_seg(test_data[worst_cases[i]][miss_idx], pred_label[worst_cases[i]][miss_idx], "{}/worst_miss_pred_{}.gif".format(args.output_dir, i), args.device)
         
